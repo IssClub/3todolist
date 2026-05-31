@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-const toEmail = (username) => `${username.toLowerCase().trim()}@3todolist.app`
+const toEmail = (username) => `${username.toLowerCase().trim()}@todolist.app`
 
 export default function Login() {
   const [mode, setMode] = useState('login') // 'login' | 'register'
