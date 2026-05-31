@@ -1,0 +1,23 @@
+{
+  "name": "3 משימות",
+  "short_name": "3 משימות",
+  "description": "מקסימום 3 משימות ביום",
+  "start_url": "/3todolist/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "dir": "rtl",
+  "lang": "he",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/0f172a/ffffff?text=3",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/512x512/0f172a/ffffff?text=3",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
