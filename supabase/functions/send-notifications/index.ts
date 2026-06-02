@@ -4,6 +4,7 @@ const ONESIGNAL_APP_ID = '07ae49fb-8e2b-4741-9561-fcee2ecd2b00'
 const ONESIGNAL_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY')!
 const CRON_SECRET     = Deno.env.get('CRON_SECRET')!
 const APP_URL         = 'https://IssClub.github.io/3todolist/'
+const MORNING_URL     = 'https://IssClub.github.io/3todolist/morning'
 
 function nowIsrael(): string {
   return new Date().toLocaleTimeString('en-GB', {
@@ -18,22 +19,24 @@ function todayIsrael(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' })
 }
 
-async function push(playerIds: string[], title: string, body: string) {
+async function push(playerIds: string[], title: string, body: string, url = APP_URL) {
   if (!playerIds.length) return
-  await fetch('https://onesignal.com/api/v1/notifications', {
+  const res = await fetch('https://onesignal.com/api/v1/notifications', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Basic ${ONESIGNAL_API_KEY}`,
+      'Authorization': `Key ${ONESIGNAL_API_KEY}`,
     },
     body: JSON.stringify({
       app_id: ONESIGNAL_APP_ID,
-      include_player_ids: playerIds,
+      include_subscription_ids: playerIds,
       headings: { he: title, en: title },
       contents: { he: body,  en: body  },
-      url: APP_URL,
+      url,
     }),
   })
+  const json = await res.json()
+  console.log('OneSignal response:', JSON.stringify(json))
 }
 
 Deno.serve(async (req) => {
@@ -70,7 +73,7 @@ Deno.serve(async (req) => {
         ? `משימה אחת פתוחה: "${open![0].title}"`
         : `יש לך ${n} משימות פתוחות: ${open!.map(t => `"${t.title}"`).join(', ')}`
 
-    await push([u.onesignal_player_id], '☀️ בוקר טוב', body)
+    await push([u.onesignal_player_id], '☀️ בוקר טוב', body, MORNING_URL)
   }
 
   /* ─── EVENING ─── */
