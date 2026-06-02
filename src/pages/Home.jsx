@@ -108,6 +108,12 @@ export default function Home({ session }) {
             היסטוריה
           </button>
           <button
+            onClick={() => navigate('/settings')}
+            className="text-slate-500 hover:text-slate-300 transition-colors text-sm"
+          >
+            הגדרות
+          </button>
+          <button
             onClick={handleLogout}
             className="text-slate-600 hover:text-slate-400 transition-colors text-xs"
           >

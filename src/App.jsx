@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import History from './pages/History'
+import Settings from './pages/Settings'
 
 function RequireAuth({ session, children }) {
   if (!session) return <Navigate to="/login" replace />
@@ -38,6 +39,11 @@ export default function App() {
       <Route path="/history" element={
         <RequireAuth session={session}>
           <History session={session} />
+        </RequireAuth>
+      } />
+      <Route path="/settings" element={
+        <RequireAuth session={session}>
+          <Settings session={session} />
         </RequireAuth>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />
