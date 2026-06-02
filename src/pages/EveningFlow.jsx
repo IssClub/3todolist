@@ -60,7 +60,7 @@ export default function EveningFlow({ session }) {
       .order('created_at', { ascending: true })
       .then(({ data }) => {
         setTasks(data || [])
-        setStep(data?.length ? 'review' : 'summary')
+        setStep(data?.length ? 'review' : 'done')
       })
   }, [session.user.id])
 
@@ -76,7 +76,10 @@ export default function EveningFlow({ session }) {
     setFloaters(prev => [...prev, { id, emoji, left }])
     setTimeout(() => setFloaters(prev => prev.filter(f => f.id !== id)), 900)
 
+    const updatedTasks = tasks.filter(t => t.id !== task.id)
     setCompleted(prev => new Set([...prev, task.id]))
+    setTasks(updatedTasks)
+    if (updatedTasks.length === 0) setTimeout(() => window.close(), 700)
 
     const today   = TODAY()
     const days    = Math.floor((new Date(today) - new Date(task.created_at)) / 86400000)
@@ -155,7 +158,7 @@ export default function EveningFlow({ session }) {
 
           {/* Done button */}
           <button
-            onClick={() => setStep('summary')}
+            onClick={() => window.close()}
             className="w-full bg-slate-100 text-slate-950 rounded-xl py-3.5 text-sm font-medium active:scale-95 transition-all"
           >
             {allDone ? 'מדהים! סיום 🎉' : 'סיום היום'}
