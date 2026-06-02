@@ -5,6 +5,7 @@ const ONESIGNAL_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY')!
 const CRON_SECRET     = Deno.env.get('CRON_SECRET')!
 const APP_URL         = 'https://IssClub.github.io/3todolist/'
 const MORNING_URL     = 'https://IssClub.github.io/3todolist/morning'
+const EVENING_URL     = 'https://IssClub.github.io/3todolist/evening'
 
 function nowIsrael(): string {
   return new Date().toLocaleTimeString('en-GB', {
@@ -99,7 +100,7 @@ Deno.serve(async (req) => {
       openN > 0               ? `יש ${openN} משימ${openN === 1 ? 'ה' : 'ות'} פתוח${openN === 1 ? 'ה' : 'ות'} — מה עם להשלים אחת? 💪` :
                                 'לא היו לך משימות היום — מחר תתחיל עם אחת! 🌙'
 
-    await push([u.onesignal_player_id], '🌙 ערב טוב', body)
+    await push([u.onesignal_player_id], '🌙 ערב טוב', body, EVENING_URL)
   }
 
   return new Response(JSON.stringify({ ok: true, time }), {

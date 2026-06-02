@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import History from './pages/History'
 import Settings from './pages/Settings'
 import MorningFlow from './pages/MorningFlow'
+import EveningFlow from './pages/EveningFlow'
 
 function RequireAuth({ session, children }) {
   if (!session) return <Navigate to="/login" replace />
@@ -40,6 +41,11 @@ export default function App() {
       <Route path="/history" element={
         <RequireAuth session={session}>
           <History session={session} />
+        </RequireAuth>
+      } />
+      <Route path="/evening" element={
+        <RequireAuth session={session}>
+          <EveningFlow session={session} />
         </RequireAuth>
       } />
       <Route path="/morning" element={
