@@ -39,6 +39,8 @@ export default function Settings({ session }) {
   const [saved, setSaved] = useState(false)
   const navigate = useNavigate()
 
+  const [pushStatus, setPushStatus] = useState('') // '', 'granted', 'denied', 'requesting'
+
   useEffect(() => {
     supabase
       .from('profiles')
@@ -53,7 +55,29 @@ export default function Settings({ session }) {
         }
         setLoading(false)
       })
+
+    // Check current permission status
+    if ('Notification' in window) {
+      setPushStatus(Notification.permission)
+    }
   }, [session.user.id])
+
+  const requestPush = async () => {
+    setPushStatus('requesting')
+    try {
+      window.OneSignalDeferred = window.OneSignalDeferred || []
+      window.OneSignalDeferred.push(async (OneSignal) => {
+        await OneSignal.Notifications.requestPermission()
+        const playerId = await OneSignal.User.PushSubscription.id
+        if (playerId) {
+          await supabase.from('profiles').update({ onesignal_player_id: playerId }).eq('id', session.user.id)
+        }
+        setPushStatus(Notification.permission)
+      })
+    } catch (_) {
+      setPushStatus('denied')
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -108,6 +132,22 @@ export default function Settings({ session }) {
               </Row>
             </>
           )}
+
+          {/* Push permission button */}
+          <button
+            onClick={requestPush}
+            disabled={pushStatus === 'granted' || pushStatus === 'requesting'}
+            className={`w-full rounded-xl py-3.5 text-sm font-medium transition-all active:scale-95 disabled:opacity-60 border ${
+              pushStatus === 'granted'
+                ? 'border-emerald-700 text-emerald-400 bg-transparent'
+                : 'border-slate-700 text-slate-300 bg-transparent'
+            }`}
+          >
+            {pushStatus === 'granted'   ? '✓ התראות מופעלות' :
+             pushStatus === 'denied'    ? '⚠️ חסומות בהגדרות הטלפון' :
+             pushStatus === 'requesting' ? '...' :
+             '🔔 הפעל התראות על המכשיר'}
+          </button>
 
           <button
             onClick={handleSave}

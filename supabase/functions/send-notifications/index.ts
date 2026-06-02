@@ -37,7 +37,8 @@ async function push(playerIds: string[], title: string, body: string) {
 }
 
 Deno.serve(async (req) => {
-  if (req.headers.get('Authorization') !== `Bearer ${CRON_SECRET}`) {
+  const url = new URL(req.url)
+  if (url.searchParams.get('secret') !== CRON_SECRET) {
     return new Response('Unauthorized', { status: 401 })
   }
 
