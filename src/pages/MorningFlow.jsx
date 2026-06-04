@@ -2,165 +2,53 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
-const MAX_TASKS = 3
+const MAX   = 3
 const TODAY = () => new Date().toISOString().split('T')[0]
 
-function TaskRow({ task, index }) {
+function Screen({ children }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl px-5 py-4 flex items-center gap-3">
-      <span className="text-slate-600 text-xs w-4">{index + 1}</span>
-      <p className="text-slate-200 text-sm">{task.title}</p>
-    </div>
-  )
-}
-
-// ─── SCREENS ───────────────────────────────────────────────
-
-function LoadingScreen() {
-  return (
-    <div className="min-h-dvh bg-slate-950 flex items-center justify-center">
-      <div className="w-5 h-5 border-2 border-slate-700 border-t-slate-400 rounded-full animate-spin" />
-    </div>
-  )
-}
-
-function OverviewScreen({ tasks, onAdd, onDone }) {
-  const canAdd = tasks.length < MAX_TASKS
-  const remaining = MAX_TASKS - tasks.length
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'בוקר טוב' : hour < 17 ? 'צהריים טובים' : 'ערב טוב'
-
-  return (
-    <div className="min-h-dvh bg-slate-950 flex flex-col items-center justify-center px-6">
-      <div className="w-full max-w-sm space-y-5">
-        <div className="text-center">
-          <p className="text-4xl mb-3">☀️</p>
-          <h1 className="text-slate-100 text-xl font-medium">{greeting}!</h1>
-          <p className="text-slate-500 text-sm mt-1">
-            {tasks.length === 0
-              ? 'אין משימות פתוחות'
-              : tasks.length === 1
-                ? 'משימה אחת פתוחה'
-                : `${tasks.length} משימות פתוחות`}
-          </p>
-        </div>
-
-        {tasks.length > 0 && (
-          <div className="space-y-2">
-            {tasks.map((t, i) => <TaskRow key={t.id} task={t} index={i} />)}
-          </div>
-        )}
-
-        {canAdd && (
-          <p className="text-center text-slate-600 text-xs">
-            {`יש לך מקום ל-${remaining} משימ${remaining === 1 ? 'ה' : 'ות'} נוספ${remaining === 1 ? 'ת' : 'ות'}`}
-          </p>
-        )}
-
-        <div className="space-y-2 pt-1">
-          {canAdd && (
-            <button
-              onClick={onAdd}
-              className="w-full bg-slate-100 text-slate-950 rounded-xl py-3.5 text-sm font-medium active:scale-95 transition-all"
-            >
-              + הוסף משימה
-            </button>
-          )}
-          <button
-            onClick={onDone}
-            className={`w-full rounded-xl py-3.5 text-sm transition-all active:scale-95 ${
-              canAdd
-                ? 'text-slate-500 hover:text-slate-400'
-                : 'bg-slate-100 text-slate-950 font-medium'
-            }`}
-          >
-            {canAdd ? (tasks.length > 0 ? 'מתחיל את היום ←' : 'אחר כך') : 'יאללה! 🚀'}
-          </button>
-        </div>
+    <div className="min-h-dvh bg-slate-950 flex flex-col items-center justify-center px-8 text-center">
+      <div className="w-full max-w-xs space-y-6">
+        {children}
       </div>
     </div>
   )
 }
 
-function AddingScreen({ onConfirm, onSkip, adding }) {
-  const [title, setTitle] = useState('')
-  const inputRef = useRef(null)
-
-  useEffect(() => {
-    setTimeout(() => inputRef.current?.focus(), 150)
-  }, [])
-
+function BigBtn({ onClick, children, secondary }) {
   return (
-    <div className="min-h-dvh bg-slate-950 flex flex-col items-center justify-center px-6">
-      <div className="w-full max-w-sm space-y-3">
-        <div className="text-center mb-6">
-          <p className="text-3xl mb-3">➕</p>
-          <h1 className="text-slate-100 text-lg font-medium">איזו משימה תרצה להוסיף?</h1>
-        </div>
-
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="שם המשימה..."
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && title.trim() && onConfirm(title.trim())}
-          maxLength={80}
-          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-600 text-sm focus:outline-none focus:border-slate-500 transition-colors"
-        />
-
-        <button
-          onClick={() => title.trim() && onConfirm(title.trim())}
-          disabled={!title.trim() || adding}
-          className="w-full bg-slate-100 text-slate-950 rounded-xl py-3.5 text-sm font-medium disabled:opacity-40 active:scale-95 transition-all"
-        >
-          {adding ? '...' : 'הוסף'}
-        </button>
-
-        <button onClick={onSkip} className="w-full text-slate-500 text-sm py-2">
-          דלג
-        </button>
-      </div>
-    </div>
+    <button
+      onClick={onClick}
+      className={`w-full rounded-2xl py-4 text-base font-medium active:scale-95 transition-all ${
+        secondary
+          ? 'text-slate-400 bg-transparent'
+          : 'bg-slate-100 text-slate-950'
+      }`}
+    >
+      {children}
+    </button>
   )
 }
 
-function SummaryScreen({ tasks, onDone }) {
+function TaskPill({ title, index }) {
   return (
-    <div className="min-h-dvh bg-slate-950 flex flex-col items-center justify-center px-6">
-      <div className="w-full max-w-sm space-y-5">
-        <div className="text-center">
-          <p className="text-4xl mb-3">💪</p>
-          <h1 className="text-slate-100 text-xl font-medium">המשימות שלך להיום</h1>
-        </div>
-
-        <div className="space-y-2">
-          {tasks.map((t, i) => <TaskRow key={t.id} task={t} index={i} />)}
-        </div>
-
-        <button
-          onClick={onDone}
-          className="w-full bg-slate-100 text-slate-950 rounded-xl py-3.5 text-sm font-medium active:scale-95 transition-all"
-        >
-          יאללה! 🚀
-        </button>
-      </div>
+    <div className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 flex items-center gap-3 text-right">
+      <span className="text-slate-700 text-xs w-4 flex-shrink-0">{index + 1}</span>
+      <p className="text-slate-200 text-sm flex-1">{title}</p>
     </div>
   )
 }
-
-// ─── MAIN ──────────────────────────────────────────────────
 
 export default function MorningFlow({ session }) {
-  const [tasks, setTasks]   = useState([])
-  const [step, setStep]     = useState('loading')
-  const [adding, setAdding] = useState(false)
+  const [tasks,   setTasks]   = useState([])
+  const [step,    setStep]    = useState('loading')
+  const [input,   setInput]   = useState('')
+  const [adding,  setAdding]  = useState(false)
+  const inputRef = useRef(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    supabase
-      .from('tasks')
-      .select('*')
+    supabase.from('tasks').select('*')
       .eq('user_id', session.user.id)
       .is('completed_at', null)
       .order('created_at', { ascending: true })
@@ -170,7 +58,13 @@ export default function MorningFlow({ session }) {
       })
   }, [session.user.id])
 
-  const addTask = async (title) => {
+  useEffect(() => {
+    if (step === 'adding') setTimeout(() => inputRef.current?.focus(), 150)
+  }, [step])
+
+  const addTask = async () => {
+    const title = input.trim()
+    if (!title || adding) return
     setAdding(true)
     const { data, error } = await supabase
       .from('tasks')
@@ -179,22 +73,108 @@ export default function MorningFlow({ session }) {
     if (!error && data) {
       const updated = [...tasks, data]
       setTasks(updated)
-      setStep(updated.length >= MAX_TASKS ? 'summary' : 'overview')
+      setInput('')
+      setStep(updated.length >= MAX ? 'final' : 'overview')
     }
     setAdding(false)
   }
 
-  const goHome = () => navigate('/')
+  const goFinal = () => setStep(tasks.length > 0 ? 'final' : 'overview')
+  const closeApp = () => navigate('/')
 
-  if (step === 'loading')  return <LoadingScreen />
-  if (step === 'adding')   return <AddingScreen onConfirm={addTask} onSkip={() => setStep(tasks.length > 0 ? 'summary' : 'overview')} adding={adding} />
-  if (step === 'summary')  return <SummaryScreen tasks={tasks} onDone={goHome} />
-
-  return (
-    <OverviewScreen
-      tasks={tasks}
-      onAdd={() => setStep('adding')}
-      onDone={() => tasks.length > 0 ? setStep('summary') : goHome()}
-    />
+  // ── LOADING ─────────────────────────────────────────────
+  if (step === 'loading') return (
+    <Screen>
+      <div className="w-5 h-5 border-2 border-slate-700 border-t-slate-400 rounded-full animate-spin mx-auto" />
+    </Screen>
   )
+
+  // ── OVERVIEW ────────────────────────────────────────────
+  if (step === 'overview') {
+    const remaining = MAX - tasks.length
+    const canAdd = remaining > 0
+    return (
+      <Screen>
+        <p className="text-5xl">☀️</p>
+        <div>
+          <h1 className="text-slate-100 text-2xl font-semibold">בוקר טוב!</h1>
+          {tasks.length > 0 && (
+            <p className="text-slate-500 text-sm mt-1">
+              {tasks.length === 1 ? 'משימה אחת פתוחה' : `${tasks.length} משימות פתוחות`}
+            </p>
+          )}
+        </div>
+
+        {tasks.length > 0 && (
+          <div className="space-y-2 text-right">
+            {tasks.map((t, i) => <TaskPill key={t.id} title={t.title} index={i} />)}
+          </div>
+        )}
+
+        {canAdd && (
+          <p className="text-slate-600 text-sm">
+            {tasks.length === 0
+              ? 'אין משימות — תרצה להוסיף?'
+              : `יש מקום ל-${remaining} משימ${remaining === 1 ? 'ה' : 'ות'} נוספ${remaining === 1 ? 'ת' : 'ות'}`}
+          </p>
+        )}
+
+        <div className="space-y-2 pt-2">
+          {canAdd && <BigBtn onClick={() => setStep('adding')}>+ הוסף משימה</BigBtn>}
+          <BigBtn secondary onClick={canAdd ? () => { if (tasks.length > 0) setStep('final'); else navigate('/') } : () => setStep('final')}>
+            {canAdd
+              ? (tasks.length > 0 ? 'מתחיל את היום ←' : 'אחר כך')
+              : 'יאללה! 🚀'}
+          </BigBtn>
+        </div>
+      </Screen>
+    )
+  }
+
+  // ── ADDING ──────────────────────────────────────────────
+  if (step === 'adding') return (
+    <Screen>
+      <p className="text-5xl">➕</p>
+      <h1 className="text-slate-100 text-xl font-semibold">איזו משימה תרצה להוסיף?</h1>
+
+      <input
+        ref={inputRef}
+        type="text"
+        placeholder="שם המשימה..."
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && addTask()}
+        maxLength={80}
+        className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-4 text-slate-100 placeholder-slate-600 text-base text-center focus:outline-none focus:border-slate-500 transition-colors"
+      />
+
+      <div className="space-y-2">
+        <BigBtn onClick={addTask} disabled={!input.trim() || adding}>
+          {adding ? '...' : 'הוסף'}
+        </BigBtn>
+        <BigBtn secondary onClick={() => setStep(tasks.length > 0 ? 'overview' : 'overview')}>
+          דלג
+        </BigBtn>
+      </div>
+    </Screen>
+  )
+
+  // ── FINAL ───────────────────────────────────────────────
+  if (step === 'final') return (
+    <Screen>
+      <p className="text-5xl">💪</p>
+      <div>
+        <h1 className="text-slate-100 text-2xl font-semibold">בהצלחה היום!</h1>
+        <p className="text-slate-500 text-sm mt-1">המשימות שלך</p>
+      </div>
+
+      <div className="space-y-2 text-right">
+        {tasks.map((t, i) => <TaskPill key={t.id} title={t.title} index={i} />)}
+      </div>
+
+      <BigBtn onClick={closeApp}>סגור 🚀</BigBtn>
+    </Screen>
+  )
+
+  return null
 }
