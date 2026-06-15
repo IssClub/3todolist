@@ -35,6 +35,11 @@ export default function History({ session }) {
     fetch()
   }, [session.user.id])
 
+  const deleteTask = async (id) => {
+    await supabase.from('tasks').delete().eq('id', id)
+    setTasks(prev => prev.filter(t => t.id !== id))
+  }
+
   // Group by completed_at date
   const grouped = tasks.reduce((acc, task) => {
     const key = task.completed_at
@@ -81,7 +86,18 @@ export default function History({ session }) {
                         </div>
                         <p className="text-slate-400 text-sm line-through">{task.title}</p>
                       </div>
-                      <DurationBadge days={task.days_to_complete ?? 0} />
+                      <div className="flex items-center gap-3">
+                        <DurationBadge days={task.days_to_complete ?? 0} />
+                        <button
+                          onClick={() => deleteTask(task.id)}
+                          className="text-slate-600 hover:text-red-400 transition-colors flex-shrink-0"
+                          aria-label="מחק"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
