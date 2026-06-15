@@ -58,9 +58,22 @@ export default function Settings({ session }) {
 
     // Check current permission status
     if ('Notification' in window) {
-      setPushStatus(Notification.permission)
+      const perm = Notification.permission
+      setPushStatus(perm)
+      // Permission already granted (e.g. from before) — silently sync the player id
+      if (perm === 'granted') syncPlayerId()
     }
   }, [session.user.id])
+
+  const syncPlayerId = () => {
+    window.OneSignalDeferred = window.OneSignalDeferred || []
+    window.OneSignalDeferred.push(async (OneSignal) => {
+      const playerId = await OneSignal.User.PushSubscription.id
+      if (playerId) {
+        await supabase.from('profiles').update({ onesignal_player_id: playerId }).eq('id', session.user.id)
+      }
+    })
+  }
 
   const requestPush = async () => {
     setPushStatus('requesting')
